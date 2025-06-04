@@ -1,5 +1,6 @@
 #IA
 import openai
+from openai import OpenAI
 import faiss
 import numpy as np
 import pickle
@@ -75,7 +76,7 @@ def responder_whatsapp(NUMBER, MENSAGEM):
 
     return response.status_code
 
-client = openai(api_key=os.getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def transcrever_audio(caminho_audio):
     with open(caminho_audio, "rb") as audio_file:
@@ -122,7 +123,6 @@ def verificar_webhook(request: Request):
 async def receber_mensagem(request: Request):
     corpo = await request.json()
     print(corpo)
-    corpo = await request.json()
 
     try:
         mensagem = corpo['entry'][0]['changes'][0]['value']['messages'][0]
@@ -138,7 +138,7 @@ async def receber_mensagem(request: Request):
             transcricao = transcrever_audio(caminho)
             resposta = ia(transcricao)
         else:
-            resposta = "Desculpe, não entendi."
+            resposta = "Desculpe, não."
 
         return responder_whatsapp(numero, resposta)
 
