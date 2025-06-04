@@ -75,10 +75,15 @@ def responder_whatsapp(NUMBER, MENSAGEM):
 
     return response.status_code
 
+client = openai(api_key=os.getenv("OPENAI_API_KEY"))
+
 def transcrever_audio(caminho_audio):
     with open(caminho_audio, "rb") as audio_file:
-        resposta = openai.Audio.transcribe("whisper-1", audio_file)
-    return resposta["text"]
+        resposta = client.audio.transcriptions.create(
+            model="whisper-1",
+            file=audio_file
+        )
+    return resposta.text
 
 def baixar_audio(media_id, salvar_em="audio.ogg"):
     ACCESS_TOKEN = os.getenv("WHATSAPP_TOKEN")  # Seu token da Cloud API
