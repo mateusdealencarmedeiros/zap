@@ -1,6 +1,5 @@
 #IA
 import openai
-from openai import OpenAI
 import faiss
 import numpy as np
 import pickle
@@ -76,19 +75,8 @@ def responder_whatsapp(NUMBER, MENSAGEM):
 
     return response.status_code
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-def transcrever_audio(caminho_audio):
-    with open(caminho_audio, "rb") as audio_file:
-        resposta = client.audio.transcriptions.create(
-            model="whisper-1",
-            file=audio_file
-        )
-    return resposta.text
-
 def baixar_audio(media_id, salvar_em="audio.ogg"):
     ACCESS_TOKEN = os.getenv("WHATSAPP_TOKEN")  # Seu token da Cloud API
-
     # 1. Pegar a URL da mídia
     url_info = f"https://graph.facebook.com/v18.0/{media_id}"
     headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
@@ -103,6 +91,12 @@ def baixar_audio(media_id, salvar_em="audio.ogg"):
         return salvar_em
     else:
         raise Exception("Não foi possível obter a URL do áudio.")
+
+def transcrever_audio(caminho_audio):
+    with open(caminho_audio, "rb") as audio_file:
+        resposta = openai.Audio.transcribe("whisper-1", audio_file)
+    return resposta["text"]
+
 
 #API
 from fastapi import FastAPI, Request
@@ -122,8 +116,6 @@ def verificar_webhook(request: Request):
 @app.post("/webhook")
 async def receber_mensagem(request: Request):
     corpo = await request.json()
-    print(corpo)
-
     try:
         mensagem = corpo['entry'][0]['changes'][0]['value']['messages'][0]
         tipo = mensagem['type']
@@ -138,7 +130,7 @@ async def receber_mensagem(request: Request):
             transcricao = transcrever_audio(caminho)
             resposta = ia(transcricao)
         else:
-            resposta = "Desculpe, não."
+            resposta = "Desculpe, ainda não entendo esse tipo de mensagem."
 
         return responder_whatsapp(numero, resposta)
 
