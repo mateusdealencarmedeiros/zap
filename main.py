@@ -51,7 +51,6 @@ def ia(pergunta):
     return resposta.choices[0].message.content.strip()
 
 # CONFIGURACOES DO META API
-
 VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")  # use esse mesmo no painel da Meta
 
 def responder_whatsapp(NUMBER, MENSAGEM):
@@ -76,6 +75,29 @@ def responder_whatsapp(NUMBER, MENSAGEM):
 
     return response.status_code
 
+def transcrever_audio(caminho_audio):
+    with open(caminho_audio, "rb") as audio_file:
+        resposta = openai.Audio.transcribe("whisper-1", audio_file)
+    return resposta["text"]
+
+def baixar_audio(media_id, salvar_em="audio.ogg"):
+    ACCESS_TOKEN = os.getenv("WHATSAPP_TOKEN")  # Seu token da Cloud API
+
+    # 1. Pegar a URL da mídia
+    url_info = f"https://graph.facebook.com/v18.0/{media_id}"
+    headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
+    resposta = requests.get(url_info, headers=headers)
+    media_url = resposta.json().get("url")
+
+    # 2. Baixar o arquivo de mídia
+    if media_url:
+        resposta_arquivo = requests.get(media_url, headers=headers)
+        with open(salvar_em, "wb") as f:
+            f.write(resposta_arquivo.content)
+        return salvar_em
+    else:
+        raise Exception("Não foi possível obter a URL do áudio.")
+
 #API
 from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse
@@ -94,5 +116,27 @@ def verificar_webhook(request: Request):
 @app.post("/webhook")
 async def receber_mensagem(request: Request):
     corpo = await request.json()
-    return responder_whatsapp(corpo['entry'][0]['changes'][0]['value']['messages'][0]['from'],
-                     ia(corpo['entry'][0]['changes'][0]['value']['messages'][0]['text']['body']))
+    print(corpo)
+    corpo = await request.json()
+
+    try:
+        mensagem = corpo['entry'][0]['changes'][0]['value']['messages'][0]
+        tipo = mensagem['type']
+        numero = mensagem['from']
+
+        if tipo == "text":
+            texto = mensagem['text']['body']
+            resposta = ia(texto)
+        elif tipo == "audio":
+            media_id = mensagem['audio']['id']
+            caminho = baixar_audio(media_id)
+            transcricao = transcrever_audio(caminho)
+            resposta = ia(transcricao)
+        else:
+            resposta = "Desculpe, não entendi."
+
+        return responder_whatsapp(numero, resposta)
+
+    except Exception as e:
+        print("Erro:", e)
+        return {"erro": str(e)}
