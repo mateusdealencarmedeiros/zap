@@ -95,6 +95,10 @@ def verificar_webhook(request: Request):
 async def receber_mensagem(request: Request):
     corpo = await request.json()
     print(corpo)
-    resposta = responder_whatsapp(corpo['entry'][0]['changes'][0]['value']['messages'][0]['from'],
-                     ia(corpo['entry'][0]['changes'][0]['value']['messages'][0]['text']['body']))
+    numero = corpo['entry'][0]['changes'][0]['value']['messages'][0]['from']
+    texto_rcb = ia(corpo['entry'][0]['changes'][0]['value']['messages'][0]['text']['body'])
+
+    print(numero)
+    print(texto_rcb)
+    resposta = responder_whatsapp(numero, texto_rcb)
     return resposta
