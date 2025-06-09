@@ -6,7 +6,6 @@ import pickle
 import requests
 from dotenv import load_dotenv
 import os
-import time
 
 # CONFIGURACOES
 
@@ -21,28 +20,6 @@ with open("blocos.pkl", "rb") as f:
     blocos = pickle.load(f)
 
 # FUNCOES
-
-def mostrar_atividade(numero, tipo="typing"):
-    """
-    tipo: "typing" para 'digitando...', "recording" para 'gravando áudio...'
-    """
-    ACCESS_TOKEN = os.getenv("WHATSAPP_TOKEN")
-    PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID")
-
-    url = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
-    headers = {
-        "Authorization": f"Bearer {ACCESS_TOKEN}",
-        "Content-Type": "application/json"
-    }
-    data = {
-        "messaging_product": "whatsapp",
-        "to": numero,
-        "type": tipo  # "typing" ou "recording"
-    }
-
-    response = requests.post(url, headers=headers, json=data)
-    print(f"Ação '{tipo}' enviada:", response.status_code, response.text)
-
 
 def transcrever_audio(media_id):
     ACCESS_TOKEN = os.getenv("WHATSAPP_TOKEN")
@@ -142,8 +119,6 @@ def verificar_webhook(request: Request):
 @app.post("/webhook")
 async def receber_mensagem(request: Request):
     corpo = await request.json()
-    mostrar_atividade(numero, tipo="typing")
-    time.sleep(2)
     print(corpo)
 
     try:
