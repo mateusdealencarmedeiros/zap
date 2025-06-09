@@ -10,7 +10,8 @@ import os
 # CONFIGURACOES
 
 VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")  # use esse mesmo no painel da Meta
-openai.api_key = os.getenv("OPENAI_API_KEY")  # Substitua pela sua chave
+CHAVE = os.getenv("OPENAI_API_KEY")
+openai.api_key = CHAVE  # Substitua pela sua chave
 
 # CARREGA A MEMÓRIA DA IA
 
@@ -137,7 +138,7 @@ async def receber_mensagem(request: Request):
         print(texto)
 
         resposta = ia(texto)
-        return responder_whatsapp(numero, resposta)
+        return responder_whatsapp(numero, "MANDA")
 
     except Exception as e:
         print("Erro:", e)
