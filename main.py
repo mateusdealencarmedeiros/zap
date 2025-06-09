@@ -62,7 +62,7 @@ def gerar_audio_elevenlabs(texto, filename="resposta.mp3"):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_file:
         tmp_file.write(response.content)
         print(f"Arquivo salvo em: {tmp_file.name}")
-        return "https://github.com/mateusdealencarmedeiros/zap/raw/refs/heads/main/WhatsApp%20Audio%202025-06-09%20at%2016.28.23.opus" #tmp_file.name
+        return tmp_file.name
 
 def ia(pergunta):
     # Criando o embedding: representação númerica da pergunta
@@ -121,7 +121,7 @@ def responder_whatsapp(NUMBER, MENSAGEM, TIPO):
         return response.status_code
     elif TIPO == 'audio':
         # === Passo 0: Gerar o áudio ===
-        link = gerar_audio_elevenlabs(MENSAGEM)
+        link = "https://file-examples.com/storage/fe3e7fc7fe68462a19ac6ae/2017/11/file_example_MP3_700KB.mp3"#gerar_audio_elevenlabs(MENSAGEM)
 
         # Passo 1: upload do áudio
         print(link)
