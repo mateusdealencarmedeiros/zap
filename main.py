@@ -78,27 +78,66 @@ def ia(pergunta):
     )
     return resposta.choices[0].message.content.strip()
 
-def responder_whatsapp(NUMBER, MENSAGEM):
+def responder_whatsapp(NUMBER, MENSAGEM, TIPO):
     ACCESS_TOKEN = os.getenv("WHATSAPP_TOKEN")  # Seu token da Cloud API
     PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID")  # ID do número do WhatsApp Cloud
     DESTINATARIO = NUMBER  # Número do cliente no formato E.164
+    
+    if TIPO == 'text':
+        # === ENVIO ===
+        url = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
+        headers = {
+            "Authorization": f"Bearer {ACCESS_TOKEN}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "messaging_product": "whatsapp",
+            "to": DESTINATARIO,
+            "type": "text",
+            "text": {"body": MENSAGEM}
+        }
 
-    # === ENVIO ===
-    url = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
-    headers = {
-        "Authorization": f"Bearer {ACCESS_TOKEN}",
-        "Content-Type": "application/json"
-    }
-    data = {
-        "messaging_product": "whatsapp",
-        "to": DESTINATARIO,
-        "type": "text",
-        "text": {"body": MENSAGEM}
-    }
+        response = requests.post(url, headers=headers, json=data)
 
-    response = requests.post(url, headers=headers, json=data)
+        return response.status_code
+    elif TIPO == 'audio':
+        # === Passo 1: Upload do áudio ===
+        url_upload = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/media"
+        headers_upload = {
+            "Authorization": f"Bearer {ACCESS_TOKEN}"
+        }
+        files = {
+            "file": (os.path.basename('resposta.mp3'), open('resposta.mp3', 'rb')),
+            "messaging_product": (None, "whatsapp"),
+            "type": (None, "audio/mpeg")  # use "audio/ogg" se for .ogg
+        }
 
-    return response.status_code
+        r_upload = requests.post(url_upload, headers=headers_upload, files=files)
+        print("Upload status:", r_upload.status_code, r_upload.text)
+
+        if r_upload.status_code != 200:
+            return {"erro": "Erro ao fazer upload do áudio"}
+
+        media_id = r_upload.json()["id"]
+
+        # === Passo 2: Enviar a mensagem de áudio ===
+        url_send = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
+        headers_send = {
+            "Authorization": f"Bearer {ACCESS_TOKEN}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "messaging_product": "whatsapp",
+            "to": NUMBER,
+            "type": "audio",
+            "audio": {
+                "id": media_id
+            }
+        }
+
+        r_send = requests.post(url_send, headers=headers_send, json=payload)
+        print("Envio status:", r_send.status_code, r_send.text)
+        return r_send.status_code
 
 # API
 
@@ -138,7 +177,7 @@ async def receber_mensagem(request: Request):
         print(texto)
 
         resposta = ia(texto)
-        return responder_whatsapp(numero, resposta)
+        return responder_whatsapp(numero, resposta, tipo)
 
     except Exception as e:
         print("Erro:", e)
