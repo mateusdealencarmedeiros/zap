@@ -121,7 +121,7 @@ def responder_whatsapp(NUMBER, MENSAGEM, TIPO):
         return response.status_code
     elif TIPO == 'audio':
         # === Passo 0: Gerar o áudio ===
-        link = "/WhatsApp Audio 2025-06-09 at 16.28.23.opus"#gerar_audio_elevenlabs(MENSAGEM)
+        link = gerar_audio_elevenlabs(MENSAGEM)
 
         # Passo 1: upload do áudio
         print(link)
