@@ -7,14 +7,18 @@ import requests
 from dotenv import load_dotenv
 import os
 
-# CONFIGURACOES INICIAIS DA IA
-CHAVE = os.getenv("OPENAI_API_KEY")
-openai.api_key = CHAVE  # Substitua pela sua chave
+# CONFIGURACOES
+
+VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")  # use esse mesmo no painel da Meta
+openai.api_key = os.getenv("OPENAI_API_KEY")  # Substitua pela sua chave
 
 # CARREGA A MEMÓRIA DA IA
+
 index = faiss.read_index("meu_indice.faiss")
 with open("blocos.pkl", "rb") as f:
     blocos = pickle.load(f)
+
+# FUNCOES
 
 def transcrever_audio(media_id):
     ACCESS_TOKEN = os.getenv("WHATSAPP_TOKEN")
@@ -40,7 +44,6 @@ def transcrever_audio(media_id):
 
     return resposta.strip()
 
-# IA
 def ia(pergunta):
     # Criando o embedding: representação númerica da pergunta
     emb = openai.embeddings.create(
@@ -74,10 +77,6 @@ def ia(pergunta):
     )
     return resposta.choices[0].message.content.strip()
 
-# CONFIGURACOES DO META API
-
-VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")  # use esse mesmo no painel da Meta
-
 def responder_whatsapp(NUMBER, MENSAGEM):
     ACCESS_TOKEN = os.getenv("WHATSAPP_TOKEN")  # Seu token da Cloud API
     PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID")  # ID do número do WhatsApp Cloud
@@ -100,7 +99,8 @@ def responder_whatsapp(NUMBER, MENSAGEM):
 
     return response.status_code
 
-#API
+# API
+
 from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse
 
