@@ -16,6 +16,30 @@ index = faiss.read_index("meu_indice.faiss")
 with open("blocos.pkl", "rb") as f:
     blocos = pickle.load(f)
 
+def transcrever_audio(media_id):
+    ACCESS_TOKEN = os.getenv("WHATSAPP_TOKEN")
+
+    # 1. Obter URL do arquivo de mídia
+    url = f"https://graph.facebook.com/v18.0/{media_id}"
+    headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
+    r = requests.get(url, headers=headers)
+    media_url = r.json()["url"]
+
+    # 2. Baixar o áudio
+    audio_bytes = requests.get(media_url, headers=headers).content
+    with open("audio.ogg", "wb") as f:
+        f.write(audio_bytes)
+
+    # 3. Enviar para Whisper (transcrição)
+    with open("audio.ogg", "rb") as audio_file:
+        resposta = openai.audio.transcriptions.create(
+            model="whisper-1",
+            file=audio_file,
+            response_format="text"
+        )
+
+    return resposta.strip()
+
 # IA
 def ia(pergunta):
     # Criando o embedding: representação númerica da pergunta
@@ -53,30 +77,6 @@ def ia(pergunta):
 # CONFIGURACOES DO META API
 
 VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")  # use esse mesmo no painel da Meta
-
-def transcrever_audio(media_id):
-    ACCESS_TOKEN = os.getenv("WHATSAPP_TOKEN")
-
-    # 1. Obter URL do arquivo de mídia
-    url = f"https://graph.facebook.com/v18.0/{media_id}"
-    headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
-    r = requests.get(url, headers=headers)
-    media_url = r.json()["url"]
-
-    # 2. Baixar o áudio
-    audio_bytes = requests.get(media_url, headers=headers).content
-    with open("audio.ogg", "wb") as f:
-        f.write(audio_bytes)
-
-    # 3. Enviar para Whisper (transcrição)
-    with open("audio.ogg", "rb") as audio_file:
-        resposta = openai.audio.transcriptions.create(
-            model="whisper-1",
-            file=audio_file,
-            response_format="text"
-        )
-
-    return resposta.strip()
 
 def responder_whatsapp(NUMBER, MENSAGEM):
     ACCESS_TOKEN = os.getenv("WHATSAPP_TOKEN")  # Seu token da Cloud API
