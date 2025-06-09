@@ -124,6 +124,7 @@ def responder_whatsapp(NUMBER, MENSAGEM, TIPO):
         link = gerar_audio_elevenlabs(MENSAGEM)
 
         # Passo 1: upload do áudio
+        print(link)
         url_upload = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/media"
         headers_upload = {
             "Authorization": f"Bearer {ACCESS_TOKEN}"
