@@ -6,6 +6,7 @@ import pickle
 import requests
 from dotenv import load_dotenv
 import os
+import tempfile
 
 # CONFIGURACOES
 
@@ -58,8 +59,10 @@ def gerar_audio_elevenlabs(texto, filename="resposta.mp3"):
     }
 
     response = requests.post(url, json=data, headers=headers)
-    with open(filename, "wb") as f:
-        f.write(response.content)
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_file:
+        tmp_file.write(response.content)
+        print(f"Arquivo salvo em: {tmp_file.name}")
+        return tmp_file.name
 
 def ia(pergunta):
     # Criando o embedding: representação númerica da pergunta
@@ -118,46 +121,43 @@ def responder_whatsapp(NUMBER, MENSAGEM, TIPO):
         return response.status_code
     elif TIPO == 'audio':
         # === Passo 0: Gerar o áudio ===
-        gerar_audio_elevenlabs(MENSAGEM)
+        link = gerar_audio_elevenlabs(MENSAGEM)
 
-        # === Passo 1: Upload do áudio ===
+        # Passo 1: upload do áudio
         url_upload = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/media"
         headers_upload = {
             "Authorization": f"Bearer {ACCESS_TOKEN}"
         }
         files = {
-            "file": ("resposta.mp3", open("resposta.mp3", "rb"), "audio/mpeg")
+            "file": (link, open(link, "rb"), "audio/mpeg")
         }
         data = {
             "messaging_product": "whatsapp"
         }
 
-        r_upload = requests.post(url_upload, headers=headers_upload, files=files, data=data)
-        print("Upload status:", r_upload.status_code, r_upload.text)
+        upload = requests.post(url_upload, headers=headers_upload, files=files, data=data)
+        print("Upload:", upload.status_code, upload.text)
 
-        if r_upload.status_code != 200:
-            return {"erro": "Erro ao fazer upload do áudio"}
+        media_id = upload.json()["id"]
 
-        media_id = r_upload.json()["id"]
-
-        # === Passo 2: Enviar a mensagem de áudio ===
-        url_send = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
-        headers_send = {
+        # Passo 2: enviar a mensagem de áudio
+        url_mensagem = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
+        headers_msg = {
             "Authorization": f"Bearer {ACCESS_TOKEN}",
+            'Accept': 'application/json',
             "Content-Type": "application/json"
         }
         payload = {
             "messaging_product": "whatsapp",
             "to": NUMBER,
             "type": "audio",
+            "format": "ptt",
             "audio": {
-                "id": media_id
+                "id": media_id,
             }
         }
 
-        r_send = requests.post(url_send, headers=headers_send, json=payload)
-        print("Envio status:", r_send.status_code, r_send.text)
-        return r_send.status_code
+        resposta = requests.post(url_mensagem, headers=headers_msg, json=payload)
 
 # API
 
