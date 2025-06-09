@@ -45,6 +45,22 @@ def transcrever_audio(media_id):
 
     return resposta.strip()
 
+def gerar_audio_elevenlabs(texto, filename="resposta.mp3"):
+    url = "https://api.elevenlabs.io/v1/text-to-speech/5EtawPduB139avoMLQgH"
+    headers = {
+        "xi-api-key": "sk_49cca28e1a39507c361b365d7dca34c2e0df693d3d51e596",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "text": texto,
+        "model_id": "eleven_multilingual_v2",
+        "voice_settings": {"stability": 0.5, "similarity_boost": 0.75}
+    }
+
+    response = requests.post(url, json=data, headers=headers)
+    with open(filename, "wb") as f:
+        f.write(response.content)
+
 def ia(pergunta):
     # Criando o embedding: representação númerica da pergunta
     emb = openai.embeddings.create(
@@ -101,18 +117,22 @@ def responder_whatsapp(NUMBER, MENSAGEM, TIPO):
 
         return response.status_code
     elif TIPO == 'audio':
+        # === Passo 0: Gerar o áudio ===
+        gerar_audio_elevenlabs(MENSAGEM)
+
         # === Passo 1: Upload do áudio ===
         url_upload = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/media"
         headers_upload = {
             "Authorization": f"Bearer {ACCESS_TOKEN}"
         }
         files = {
-            "file": (os.path.basename('resposta.mp3'), open('resposta.mp3', 'rb')),
-            "messaging_product": (None, "whatsapp"),
-            "type": (None, "audio/mpeg")  # use "audio/ogg" se for .ogg
+            "file": ("resposta.mp3", open("resposta.mp3", "rb"), "audio/mpeg")
+        }
+        data = {
+            "messaging_product": "whatsapp"
         }
 
-        r_upload = requests.post(url_upload, headers=headers_upload, files=files)
+        r_upload = requests.post(url_upload, headers=headers_upload, files=files, data=data)
         print("Upload status:", r_upload.status_code, r_upload.text)
 
         if r_upload.status_code != 200:
