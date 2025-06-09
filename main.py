@@ -137,7 +137,7 @@ async def receber_mensagem(request: Request):
         print(texto)
 
         resposta = ia(texto)
-        return responder_whatsapp(numero, mensagem)
+        return responder_whatsapp(numero, resposta)
 
     except Exception as e:
         print("Erro:", e)
