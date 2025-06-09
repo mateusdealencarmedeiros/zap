@@ -21,6 +21,30 @@ with open("blocos.pkl", "rb") as f:
 
 # FUNCOES
 
+def enviar_acao(numero, tipo="typing"):
+    """
+    tipo: "typing" para digitando, "recording" para gravando áudio
+    """
+    ACCESS_TOKEN = os.getenv("WHATSAPP_TOKEN")
+    PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID")
+
+    acao = "typing_on" if tipo == "typing" else "recording"
+
+    url = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "messaging_product": "whatsapp",
+        "to": numero,
+        "type": "action",
+        "action": acao
+    }
+
+    response = requests.post(url, headers=headers, json=payload)
+    print(f"Ação '{acao}' enviada:", response.status_code)
+
 def transcrever_audio(media_id):
     ACCESS_TOKEN = os.getenv("WHATSAPP_TOKEN")
 
@@ -79,6 +103,7 @@ def ia(pergunta):
     return resposta.choices[0].message.content.strip()
 
 def responder_whatsapp(NUMBER, MENSAGEM):
+    enviar_acao(NUMBER, tipo="typing")
     ACCESS_TOKEN = os.getenv("WHATSAPP_TOKEN")  # Seu token da Cloud API
     PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID")  # ID do número do WhatsApp Cloud
     DESTINATARIO = NUMBER  # Número do cliente no formato E.164
