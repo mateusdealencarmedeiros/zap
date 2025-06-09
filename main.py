@@ -103,9 +103,6 @@ def ia(pergunta):
     return resposta.choices[0].message.content.strip()
 
 def responder_whatsapp(NUMBER, MENSAGEM):
-    enviar_acao(NUMBER, tipo="typing")
-    import time
-    time.sleep(5)
     ACCESS_TOKEN = os.getenv("WHATSAPP_TOKEN")  # Seu token da Cloud API
     PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID")  # ID do número do WhatsApp Cloud
     DESTINATARIO = NUMBER  # Número do cliente no formato E.164
@@ -124,6 +121,7 @@ def responder_whatsapp(NUMBER, MENSAGEM):
     }
 
     response = requests.post(url, headers=headers, json=data)
+    enviar_acao(NUMBER)
 
     return response.status_code
 
