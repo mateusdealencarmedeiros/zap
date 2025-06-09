@@ -130,7 +130,7 @@ def responder_whatsapp(NUMBER, MENSAGEM, TIPO):
             "Authorization": f"Bearer {ACCESS_TOKEN}"
         }
         files = {
-            "file": (link, open(link, "rb"), "audio/mpeg")
+            "file": (os.path.basename(link), open(link, "rb"), "audio/mpeg")
         }
         data = {
             "messaging_product": "whatsapp"
