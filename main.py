@@ -40,10 +40,10 @@ def transcrever_audio(media_id):
         resposta = openai.audio.transcriptions.create(
             model="whisper-1",
             file=audio_file,
-            response_format="verbose_json"
+            response_format="text"
         )
 
-    return resposta["text"]
+    return resposta.strip()
 
 def ia(pergunta):
     # Criando o embedding: representação númerica da pergunta
