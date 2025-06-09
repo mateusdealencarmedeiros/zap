@@ -6,6 +6,7 @@ import pickle
 import requests
 from dotenv import load_dotenv
 import os
+import time
 
 # CONFIGURACOES
 
@@ -21,29 +22,27 @@ with open("blocos.pkl", "rb") as f:
 
 # FUNCOES
 
-def enviar_acao(numero, tipo="typing"):
+def mostrar_atividade(numero, tipo="typing"):
     """
-    tipo: "typing" para digitando, "recording" para gravando áudio
+    tipo: "typing" para 'digitando...', "recording" para 'gravando áudio...'
     """
     ACCESS_TOKEN = os.getenv("WHATSAPP_TOKEN")
     PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID")
-
-    acao = "typing_on" if tipo == "typing" else "recording"
 
     url = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
     headers = {
         "Authorization": f"Bearer {ACCESS_TOKEN}",
         "Content-Type": "application/json"
     }
-    payload = {
+    data = {
         "messaging_product": "whatsapp",
         "to": numero,
-        "type": "action",
-        "action": acao
+        "type": tipo  # "typing" ou "recording"
     }
 
-    response = requests.post(url, headers=headers, json=payload)
-    print(f"Ação '{acao}' enviada:", response.status_code)
+    response = requests.post(url, headers=headers, json=data)
+    print(f"Ação '{tipo}' enviada:", response.status_code, response.text)
+
 
 def transcrever_audio(media_id):
     ACCESS_TOKEN = os.getenv("WHATSAPP_TOKEN")
@@ -121,7 +120,6 @@ def responder_whatsapp(NUMBER, MENSAGEM):
     }
 
     response = requests.post(url, headers=headers, json=data)
-    enviar_acao(NUMBER)
 
     return response.status_code
 
@@ -144,6 +142,8 @@ def verificar_webhook(request: Request):
 @app.post("/webhook")
 async def receber_mensagem(request: Request):
     corpo = await request.json()
+    mostrar_atividade(numero, tipo="typing")
+    time.sleep(2)
     print(corpo)
 
     try:
