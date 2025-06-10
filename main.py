@@ -126,17 +126,21 @@ def responder_whatsapp(NUMBER, MENSAGEM, TIPO):
         # Passo 1: upload do áudio
         print(link)
         url_upload = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/media"
-        headers_upload = {
-            "Authorization": f"Bearer {ACCESS_TOKEN}"
-        }
-        files = {
-            "file": ("resposta.mp3", open(link, "rb"), "audio/mpeg")
-        }
-        data = {
-            "messaging_product": "whatsapp"
-        }
+        from requests_toolbelt.multipart.encoder import MultipartEncoder
 
-        upload = requests.post(url_upload, headers=headers_upload, files=files, data=data)
+        with open(link, "rb") as f:
+            m = MultipartEncoder(
+                fields={
+                    "file": ("resposta.mp3", f, "audio/mpeg"),
+                    "messaging_product": "whatsapp"
+                }
+            )
+            headers_upload = {
+                "Authorization": f"Bearer {ACCESS_TOKEN}",
+                "Content-Type": m.content_type
+            }
+
+            upload = requests.post(url_upload, headers=headers_upload, data=m)
         print("Upload:", upload.status_code, upload.text)
 
         media_id = upload.json()["id"]
@@ -159,21 +163,6 @@ def responder_whatsapp(NUMBER, MENSAGEM, TIPO):
         }
 
         resposta = requests.post(url_mensagem, headers=headers_msg, json=payload)
-
-        # === ENVIO ===
-        url = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
-        headers = {
-            "Authorization": f"Bearer {ACCESS_TOKEN}",
-            "Content-Type": "application/json"
-        }
-        data = {
-            "messaging_product": "whatsapp",
-            "to": DESTINATARIO,
-            "type": "text",
-            "text": {"body": link}
-        }
-
-        response = requests.post(url, headers=headers, json=data)
 
 # API
 
