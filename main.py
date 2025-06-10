@@ -59,11 +59,18 @@ def gerar_audio_elevenlabs(texto, filename="resposta.mp3"):
     }
 
     response = requests.post(url, json=data, headers=headers)
+
+    # 🛑 Validação crítica:
+    content_type = response.headers.get("Content-Type", "")
+    if not content_type.startswith("audio"):
+        print("❌ Conteúdo inválido:", content_type)
+        print("Body:", response.text)
+        raise ValueError("Resposta da ElevenLabs não é áudio válido.")
+
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_file:
         tmp_file.write(response.content)
         tmp_file.flush()
-        os.fsync(tmp_file.fileno())  # << ESSENCIAL
-        print(f"Arquivo salvo em: {tmp_file.name}")
+        os.fsync(tmp_file.fileno())
         return tmp_file.name
 
 def ia(pergunta):
@@ -142,6 +149,8 @@ def responder_whatsapp(NUMBER, MENSAGEM, TIPO):
         print("Upload:", upload.status_code, upload.text)
 
         media_id = upload.json()["id"]
+
+        print("Testeeeeeeeee")
 
         # Passo 2: enviar a mensagem de áudio
         url_mensagem = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
