@@ -126,21 +126,17 @@ def responder_whatsapp(NUMBER, MENSAGEM, TIPO):
         # Passo 1: upload do áudio
         print(link)
         url_upload = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/media"
-        from requests_toolbelt.multipart.encoder import MultipartEncoder
+        headers_upload = {
+            "Authorization": f"Bearer {ACCESS_TOKEN}"
+        }
+        files = {
+            "file": (os.path.basename(link), open(link, "rb"), "audio/mpeg")
+        }
+        data = {
+            "messaging_product": "whatsapp"
+        }
 
-        with open(link, "rb") as f:
-            m = MultipartEncoder(
-                fields={
-                    "file": ("resposta.mp3", f, "audio/mpeg"),
-                    "messaging_product": "whatsapp"
-                }
-            )
-            headers_upload = {
-                "Authorization": f"Bearer {ACCESS_TOKEN}",
-                "Content-Type": m.content_type
-            }
-
-            upload = requests.post(url_upload, headers=headers_upload, data=m)
+        upload = requests.post(url_upload, headers=headers_upload, files=files, data=data)
         print("Upload:", upload.status_code, upload.text)
 
         media_id = upload.json()["id"]
@@ -156,9 +152,8 @@ def responder_whatsapp(NUMBER, MENSAGEM, TIPO):
             "messaging_product": "whatsapp",
             "to": NUMBER,
             "type": "audio",
-            "format": "ptt",
             "audio": {
-                "id": media_id,
+                "link": "http://www.tuningmania.com.br/autosom/mp3/0-intro%20to%20test%20section.MP3",
             }
         }
 
