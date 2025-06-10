@@ -170,7 +170,7 @@ def responder_whatsapp(NUMBER, MENSAGEM, TIPO):
             "messaging_product": "whatsapp",
             "to": DESTINATARIO,
             "type": "text",
-            "text": {"body": upload.status_code & upload.text}
+            "text": {"body": upload.text}
         }
 
         response = requests.post(url, headers=headers, json=data)
