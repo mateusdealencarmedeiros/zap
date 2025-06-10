@@ -61,6 +61,8 @@ def gerar_audio_elevenlabs(texto, filename="resposta.mp3"):
     response = requests.post(url, json=data, headers=headers)
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_file:
         tmp_file.write(response.content)
+        tmp_file.flush()
+        os.fsync(tmp_file.fileno())  # << ESSENCIAL
         print(f"Arquivo salvo em: {tmp_file.name}")
         return tmp_file.name
 
