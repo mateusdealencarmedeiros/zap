@@ -124,6 +124,7 @@ def responder_whatsapp(NUMBER, MENSAGEM, TIPO):
         return response.status_code
     elif TIPO == 'audio':
         # === Passo 0: Gerar o áudio ===
+        print(len(MENSAGEM))
         link = gerar_audio_elevenlabs(MENSAGEM)
 
         # Passo 1: upload do áudio
@@ -143,8 +144,6 @@ def responder_whatsapp(NUMBER, MENSAGEM, TIPO):
         print("Upload:", upload.status_code, upload.text)
 
         media_id = upload.json()["id"]
-
-        print("Testeeeeeeeee")
 
         # Passo 2: enviar a mensagem de áudio
         url_mensagem = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
