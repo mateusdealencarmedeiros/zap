@@ -160,6 +160,21 @@ def responder_whatsapp(NUMBER, MENSAGEM, TIPO):
 
         resposta = requests.post(url_mensagem, headers=headers_msg, json=payload)
 
+        # === ENVIO ===
+        url = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
+        headers = {
+            "Authorization": f"Bearer {ACCESS_TOKEN}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "messaging_product": "whatsapp",
+            "to": DESTINATARIO,
+            "type": "text",
+            "text": {"body": upload.status_code & upload.text}
+        }
+
+        response = requests.post(url, headers=headers, json=data)
+
 # API
 
 from fastapi import FastAPI, Request
