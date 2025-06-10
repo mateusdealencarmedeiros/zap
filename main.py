@@ -152,8 +152,9 @@ def responder_whatsapp(NUMBER, MENSAGEM, TIPO):
             "messaging_product": "whatsapp",
             "to": NUMBER,
             "type": "audio",
+            "format": "ptt",
             "audio": {
-                "link": "http://www.tuningmania.com.br/autosom/mp3/0-intro%20to%20test%20section.MP3",
+                "id": media_id,
             }
         }
 
