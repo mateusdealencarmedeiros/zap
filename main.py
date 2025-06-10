@@ -59,7 +59,7 @@ def gerar_audio_elevenlabs(texto, filename="resposta.mp3"):
     }
 
     response = requests.post(url, json=data, headers=headers)
-    print(response)
+    print(response.content)
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_file:
         tmp_file.write(response.content)
         tmp_file.flush()
