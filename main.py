@@ -200,7 +200,16 @@ async def receber_mensagem(request: Request):
         print(texto)
 
         resposta = ia(texto)
-        return responder_whatsapp(numero, resposta, tipo)
+
+        # Se for texto, envia cada parágrafo separadamente
+        if tipo == "text":
+            paragrafos = [p.strip() for p in resposta.split("\n\n") if p.strip()]
+            for p in paragrafos:
+                responder_whatsapp(numero, p, "text")
+        else:
+            responder_whatsapp(numero, resposta, tipo)        
+
+        return 0
 
     except Exception as e:
         print("Erro:", e)
